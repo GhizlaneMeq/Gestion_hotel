@@ -1,6 +1,5 @@
 package Entities;
 
-import Enums.RoomType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 

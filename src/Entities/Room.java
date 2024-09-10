@@ -1,7 +1,5 @@
 package Entities;
 
-import Enums.RoomType;
-
 public class Room {
     private Long id;
     private Integer roomNumber;
