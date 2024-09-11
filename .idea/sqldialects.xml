@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/src/Repositories/ModeratorRepository.java" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/Repositories/RoomPricingRepository.java" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/Repositories/RoomRepository.java" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/src/Repositories/UserRepository.java" dialect="GenericSQL" />
+  </component>
+</project>

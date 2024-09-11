@@ -1,33 +1,21 @@
 package Entities;
 
-public class Moderator {
-    private Long id;
-    private User user;
+public class Moderator extends User {
     private String permission;
 
     public Moderator() {
+        super();
     }
 
-    public Moderator(Long id, User user, String permission) {
-        this.id = id;
-        this.user = user;
+    public Moderator(Long id, String name, String email, String phone, String password, String permission) {
+        super(id, name, email, phone, password);
         this.permission = permission;
     }
 
-    public Long getId() {
-        return id;
+    public Moderator(long id, User user, String permission) {
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
+    public Moderator(long moderatorId, long userId, String name, String email, String phone, String password, String permission) {
     }
 
     public String getPermission() {
@@ -37,4 +25,6 @@ public class Moderator {
     public void setPermission(String permission) {
         this.permission = permission;
     }
+
+
 }

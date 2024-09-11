@@ -1,5 +1,7 @@
 package Repositories;
 
+import Entities.User;
+
 import java.sql.SQLException;
 import java.util.List;
 
