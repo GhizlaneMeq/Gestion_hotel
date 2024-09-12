@@ -74,7 +74,7 @@ public class RoomRepository implements GenericRepository<Room, Long> {
         String query = "UPDATE rooms SET room_number = ?, room_type = ?, is_available = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setInt(1, room.getRoomNumber());
-            statement.setString(2, room.getRoomType().name());
+            statement.setObject(2, room.getRoomType().name(), java.sql.Types.OTHER);
             statement.setBoolean(3, room.getAvailable());
             statement.setLong(4, id);
             statement.executeUpdate();

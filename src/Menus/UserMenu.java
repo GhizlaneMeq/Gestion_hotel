@@ -6,11 +6,10 @@ import Services.ReservationService;
 import Services.UserService;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
+import java.sql.*;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
+
 
 public class UserMenu {
     private UserService userService;
@@ -23,6 +22,9 @@ public class UserMenu {
         this.currentUser = currentUser;
     }
 
+    public void setCurrentUser(User currentUser) {
+        this.currentUser = currentUser;
+    }
     public void show() {
         Scanner scanner = new Scanner(System.in);
         while (true) {

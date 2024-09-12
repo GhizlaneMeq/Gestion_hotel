@@ -25,13 +25,15 @@ public class RoomService {
         roomRepository.updateAvailability(roomId, isAvailable);
     }
 
-    public Optional<Room> getRoomById(Long roomId) {
-        return null;
+    public Optional<Room> getRoomById(Long roomId) throws SQLException {
+        return Optional.ofNullable(roomRepository.findById(roomId));
     }
 
-    public void update(Room room) {
+    public void update(Room room, Long id) throws SQLException {
+        roomRepository.update(room,id);
     }
 
-    public void delete(Long roomId) {
+    public void delete(Long roomId) throws SQLException {
+        roomRepository.delete(roomId);
     }
 }

@@ -58,7 +58,7 @@ public class ModeratorMenu {
         }
     }
 
-    private void manageRooms(Scanner scanner) {
+    private void manageRooms(Scanner scanner) throws SQLException {
         while (true) {
             System.out.println("Manage Rooms Menu");
             System.out.println("1. Create Room");
@@ -110,7 +110,7 @@ public class ModeratorMenu {
         }
     }
 
-    private void updateRoom(Scanner scanner) {
+    private void updateRoom(Scanner scanner) throws SQLException {
         System.out.print("Enter room ID to update: ");
         Long roomId = Long.parseLong(scanner.nextLine());
         Optional<Room> roomOptional = roomService.getRoomById(roomId);
@@ -127,11 +127,13 @@ public class ModeratorMenu {
             System.out.print("Enter new availability (true/false): ");
             room.setAvailable(Boolean.parseBoolean(scanner.nextLine()));
 
-            roomService.update(room);
+            roomService.update(room, roomId);
             System.out.println("Room updated successfully.");
         } else {
             System.out.println("Room not found.");
         }
+
+
     }
 
     private void deleteRoom(Scanner scanner) {
