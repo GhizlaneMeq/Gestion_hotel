@@ -58,6 +58,9 @@ public class SpecialEvent {
     }
 
     public void setExtraCharge(BigDecimal extraCharge) {
+        if (extraCharge.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Extra charge must be positive");
+        }
         this.extraCharge = extraCharge;
     }
 }

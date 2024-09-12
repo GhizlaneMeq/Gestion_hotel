@@ -11,6 +11,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ReservationRepository implements GenericRepository<Reservation, Long> {
     private final Connection connection;
@@ -93,7 +94,7 @@ public class ReservationRepository implements GenericRepository<Reservation, Lon
     }
 
     private Reservation mapResultSetToReservation(ResultSet resultSet) throws SQLException {
-        Long reservationId = resultSet.getLong("id");
+        /*Long reservationId = resultSet.getLong("id");
         Long userId = resultSet.getLong("user_id");
         Long roomId = resultSet.getLong("room_id");
         String reservationStatusStr = resultSet.getString("reservation_status");
@@ -102,10 +103,12 @@ public class ReservationRepository implements GenericRepository<Reservation, Lon
         BigDecimal totalPrice = resultSet.getBigDecimal("total_price");
         String specialRequests = resultSet.getString("special_requests");
 
-        User user = new UserRepository().findById(Math.toIntExact(userId));
+        Optional<User> user = new UserRepository().findById((long) Math.toIntExact(userId));
         Room room = new RoomRepository().findById(roomId);
         ReservationStatus reservationStatus = ReservationStatus.valueOf(reservationStatusStr);
 
-        return new Reservation(reservationId, user, room, reservationStatus, checkInDate, checkOutDate, totalPrice, specialRequests);
+        return new Reservation(reservationId, user, room, reservationStatus, checkInDate, checkOutDate, totalPrice, specialRequests);*/
+        Reservation Reservation = new Reservation() ;
+        return Reservation ;
     }
 }

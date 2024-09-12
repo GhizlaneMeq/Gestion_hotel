@@ -4,16 +4,16 @@ public class Room {
     private Long id;
     private Integer roomNumber;
     private RoomType roomType;
-    private Boolean isAvailable;
+    private Boolean available;
 
     public Room() {
     }
 
-    public Room(Long id, Integer roomNumber, RoomType roomType, Boolean isAvailable) {
+    public Room(Long id, Integer roomNumber, RoomType roomType, Boolean available) {
         this.id = id;
         this.roomNumber = roomNumber;
         this.roomType = roomType;
-        this.isAvailable = isAvailable;
+        this.available = available;
     }
 
     public Long getId() {
@@ -40,11 +40,11 @@ public class Room {
         this.roomType = roomType;
     }
 
-    public Boolean getIsAvailable() {
-        return isAvailable;
+    public Boolean getAvailable() {
+        return available;
     }
 
-    public void setIsAvailable(Boolean isAvailable) {
-        this.isAvailable = isAvailable;
+    public void setAvailable(Boolean available) {
+        this.available = available;
     }
 }

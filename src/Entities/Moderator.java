@@ -12,10 +12,12 @@ public class Moderator extends User {
         this.permission = permission;
     }
 
-    public Moderator(long id, User user, String permission) {
+    public Moderator(User user, String permission) {
+        super(user.getId(), user.getName(), user.getEmail(), user.getPhone(), user.getPassword());
+        this.permission = permission;
     }
 
-    public Moderator(long moderatorId, long userId, String name, String email, String phone, String password, String permission) {
+    public Moderator(long id, long userId, String permission) {
     }
 
     public String getPermission() {
@@ -25,6 +27,5 @@ public class Moderator extends User {
     public void setPermission(String permission) {
         this.permission = permission;
     }
-
 
 }

@@ -29,6 +29,9 @@ public class Reservation {
         this.specialRequests = specialRequests;
     }
 
+    public Reservation(Long id, Long id1, Long roomId, String confirmed, LocalDate checkInDate, LocalDate checkOutDate, BigDecimal totalPrice, String specialRequests) {
+    }
+
     public Long getId() {
         return id;
     }
@@ -74,6 +77,9 @@ public class Reservation {
     }
 
     public void setCheckOutDate(LocalDate checkOutDate) {
+        if (checkOutDate.isBefore(checkInDate)) {
+            throw new IllegalArgumentException("Check-out date must be after check-in date");
+        }
         this.checkOutDate = checkOutDate;
     }
 
@@ -92,4 +98,6 @@ public class Reservation {
     public void setSpecialRequests(String specialRequests) {
         this.specialRequests = specialRequests;
     }
+
+
 }

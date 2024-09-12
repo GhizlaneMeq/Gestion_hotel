@@ -50,6 +50,9 @@ public class RoomPricing {
     }
 
     public void setEndDate(LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("End date must be after start date");
+        }
         this.endDate = endDate;
     }
 
@@ -58,6 +61,9 @@ public class RoomPricing {
     }
 
     public void setBasePrice(BigDecimal basePrice) {
+        if (basePrice.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Base price must be positive");
+        }
         this.basePrice = basePrice;
     }
 }

@@ -19,11 +19,15 @@ public class RoomRepository implements GenericRepository<Room, Long> {
     @Override
     public void save(Room room) throws SQLException {
         String query = "INSERT INTO rooms (room_number, room_type, is_available) VALUES (?, ?, ?)";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
+        try (PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             statement.setInt(1, room.getRoomNumber());
-            statement.setString(2, room.getRoomType().name());
-            statement.setBoolean(3, room.getIsAvailable());
+            statement.setObject(2, room.getRoomType().name(), java.sql.Types.OTHER);
+            statement.setBoolean(3, room.getAvailable());
             statement.executeUpdate();
+            ResultSet keys = statement.getGeneratedKeys();
+            if (keys.next()) {
+                room.setId(keys.getLong(1));
+            }
         }
     }
 
@@ -48,20 +52,21 @@ public class RoomRepository implements GenericRepository<Room, Long> {
 
     @Override
     public List<Room> findAll() throws SQLException {
-        String query = "SELECT id, room_number, room_type, is_available FROM rooms";
-        List<Room> rooms = new ArrayList<>();
-        try (PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()) {
+        String query = "SELECT * FROM rooms";
+        try (Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+            List<Room> rooms = new ArrayList<>();
             while (resultSet.next()) {
-                rooms.add(new Room(
+                Room room = new Room(
                         resultSet.getLong("id"),
                         resultSet.getInt("room_number"),
                         RoomType.valueOf(resultSet.getString("room_type")),
                         resultSet.getBoolean("is_available")
-                ));
+                );
+                rooms.add(room);
             }
+            return rooms;
         }
-        return rooms;
     }
 
     @Override
@@ -70,7 +75,7 @@ public class RoomRepository implements GenericRepository<Room, Long> {
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setInt(1, room.getRoomNumber());
             statement.setString(2, room.getRoomType().name());
-            statement.setBoolean(3, room.getIsAvailable());
+            statement.setBoolean(3, room.getAvailable());
             statement.setLong(4, id);
             statement.executeUpdate();
         }
@@ -81,6 +86,15 @@ public class RoomRepository implements GenericRepository<Room, Long> {
         String query = "DELETE FROM rooms WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setLong(1, id);
+            statement.executeUpdate();
+        }
+    }
+
+    public void updateAvailability(Long roomId, boolean isAvailable) throws SQLException {
+        String query = "UPDATE rooms SET is_available = ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setBoolean(1, isAvailable);
+            statement.setLong(2, roomId);
             statement.executeUpdate();
         }
     }
