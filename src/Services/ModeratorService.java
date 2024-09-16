@@ -18,7 +18,7 @@ public class ModeratorService {
     }
 
     public Optional<Moderator> getModeratorByUserId(Long userId) throws SQLException {
-        return moderatorRepository.findByUserId(userId);
+        return moderatorRepository.findById(userId);
     }
 
     public Optional<Moderator> getModeratorById(Long id) throws SQLException {
@@ -30,7 +30,7 @@ public class ModeratorService {
     }
 
     public void update(Moderator moderator) throws SQLException {
-        moderatorRepository.update(moderator, moderator.getId());
+        moderatorRepository.update(moderator);
     }
 
     public List<Moderator> getAllModerators() throws SQLException {

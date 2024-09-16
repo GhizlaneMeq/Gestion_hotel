@@ -17,7 +17,7 @@ public class UserService {
     }
 
     public Optional<User> loginUser(String email, String password) throws SQLException {
-        Optional<User> userOptional = userRepository.findByEmail(email);
+        Optional<User> userOptional = userRepository.findUserByEmail(email);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             if (user.getPassword().equals(password)) {
@@ -29,5 +29,9 @@ public class UserService {
 
     public Optional<User> findById(Long id) throws SQLException {
         return userRepository.findById(id);
+    }
+
+    public Optional<User> findUserByEmail(String email) throws SQLException {
+        return userRepository.findUserByEmail(email);
     }
 }

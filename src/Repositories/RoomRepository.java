@@ -4,98 +4,161 @@ import Entities.Room;
 import Entities.RoomType;
 import Utils.DatabaseConnection;
 
+import java.math.BigDecimal;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class RoomRepository implements GenericRepository<Room, Long> {
-
-    private final Connection connection;
+public class RoomRepository implements BaseRepository<Room> {
+    private Connection connection;
 
     public RoomRepository() {
         this.connection = DatabaseConnection.getInstance().getConnection();
     }
 
     @Override
-    public void save(Room room) throws SQLException {
-        String query = "INSERT INTO rooms (room_number, room_type, is_available) VALUES (?, ?, ?)";
-        try (PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, room.getRoomNumber());
-            statement.setObject(2, room.getRoomType().name(), java.sql.Types.OTHER);
-            statement.setBoolean(3, room.getAvailable());
-            statement.executeUpdate();
-            ResultSet keys = statement.getGeneratedKeys();
-            if (keys.next()) {
-                room.setId(keys.getLong(1));
+    public Optional<Room> findById(Long id) throws SQLException {
+        String sql = "SELECT * FROM rooms WHERE id = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(mapRowToRoom(rs));
             }
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public List<Room> findAll() {
+        List<Room> rooms = new ArrayList<>();
+        try {
+            String sql = "SELECT * FROM rooms";
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(sql);
+
+            while (rs.next()) {
+                rooms.add(new Room(
+                        rs.getLong("id"),
+                        rs.getInt("room_number"),
+                        RoomType.valueOf(rs.getString("room_type"))
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rooms;
+    }
+
+    @Override
+    public Room save(Room room) throws SQLException {
+        String sql = "INSERT INTO rooms (room_number, room_type) VALUES (?, ?::room_type) RETURNING id";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, room.getRoomNumber());
+            stmt.setString(2, room.getRoomType().name());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                room.setId(rs.getLong("id"));
+            }
+        }
+        return room;
+    }
+
+    @Override
+    public void update(Room room) {
+        try {
+            String sql = "UPDATE rooms SET room_number = ?, room_type = ? WHERE id = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, room.getRoomNumber());
+            statement.setString(2, room.getRoomType().name());
+            statement.setLong(3, room.getId());
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
-    public Room findById(Long id) throws SQLException {
-        String query = "SELECT id, room_number, room_type, is_available FROM rooms WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
+    public void delete(Long id) {
+        try {
+            String sql = "DELETE FROM rooms WHERE id = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
             statement.setLong(1, id);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                return new Room(
-                        resultSet.getLong("id"),
-                        resultSet.getInt("room_number"),
-                        RoomType.valueOf(resultSet.getString("room_type")),
-                        resultSet.getBoolean("is_available")
-                );
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    public boolean isAvailable(Long roomId, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        String query = "SELECT COUNT(*) FROM reservations WHERE room_id = ? " +
+                "AND (check_in_date < ? AND check_out_date > ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setLong(1, roomId);
+            stmt.setDate(2, java.sql.Date.valueOf(checkOutDate));
+            stmt.setDate(3, java.sql.Date.valueOf(checkInDate));
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) == 0;
             } else {
-                return null;
+                return false;
             }
         }
     }
 
-    @Override
-    public List<Room> findAll() throws SQLException {
-        String query = "SELECT * FROM rooms";
-        try (Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(query)) {
-            List<Room> rooms = new ArrayList<>();
-            while (resultSet.next()) {
-                Room room = new Room(
-                        resultSet.getLong("id"),
-                        resultSet.getInt("room_number"),
-                        RoomType.valueOf(resultSet.getString("room_type")),
-                        resultSet.getBoolean("is_available")
-                );
-                rooms.add(room);
+    private Room mapRowToRoom(ResultSet rs) throws SQLException {
+        return new Room(
+                rs.getLong("id"),
+                rs.getInt("room_number"),
+                RoomType.valueOf(rs.getString("room_type"))
+        );
+    }
+    public BigDecimal calculateRoomPrice(Long roomId, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        Room room = findById(roomId).orElseThrow(() -> new IllegalArgumentException("Room not found"));
+
+        BigDecimal basePrice = getBasePrice(room.getRoomType(), checkInDate, checkOutDate);
+        BigDecimal extraCharge = getEventExtraCharge(checkInDate, checkOutDate);
+
+        return basePrice.add(extraCharge);
+    }
+
+    private BigDecimal getBasePrice(RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        String sql = "SELECT base_price FROM room_pricing WHERE room_type = ? AND start_date <= ? AND end_date >= ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, roomType.name());
+            stmt.setDate(2, Date.valueOf(checkInDate));
+            stmt.setDate(3, Date.valueOf(checkOutDate));
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("base_price");
             }
-            return rooms;
         }
+        return BigDecimal.ZERO;
+    }
+    private BigDecimal getEventExtraCharge(LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        String sql = "SELECT SUM(extra_charge) AS total_extra FROM special_events WHERE start_date <= ? AND end_date >= ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setDate(1, Date.valueOf(checkInDate));
+            stmt.setDate(2, Date.valueOf(checkOutDate));
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getBigDecimal("total_extra");
+            }
+        }
+        return BigDecimal.ZERO;
     }
 
-    @Override
-    public void update(Room room, Long id) throws SQLException {
-        String query = "UPDATE rooms SET room_number = ?, room_type = ?, is_available = ? WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setInt(1, room.getRoomNumber());
-            statement.setObject(2, room.getRoomType().name(), java.sql.Types.OTHER);
-            statement.setBoolean(3, room.getAvailable());
-            statement.setLong(4, id);
-            statement.executeUpdate();
+    public List<Room> findByRoomType(RoomType roomType) throws SQLException {
+        List<Room> rooms = new ArrayList<>();
+        String sql = "SELECT * FROM rooms WHERE room_type = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, roomType.name());
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                rooms.add(mapRowToRoom(rs));
+            }
         }
-    }
-
-    @Override
-    public void delete(Long id) throws SQLException {
-        String query = "DELETE FROM rooms WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setLong(1, id);
-            statement.executeUpdate();
-        }
-    }
-
-    public void updateAvailability(Long roomId, boolean isAvailable) throws SQLException {
-        String query = "UPDATE rooms SET is_available = ? WHERE id = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setBoolean(1, isAvailable);
-            statement.setLong(2, roomId);
-            statement.executeUpdate();
-        }
+        return rooms;
     }
 }

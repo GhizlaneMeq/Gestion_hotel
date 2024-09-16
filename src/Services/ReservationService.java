@@ -3,19 +3,36 @@ package Services;
 import Entities.Reservation;
 import Repositories.ReservationRepository;
 
+import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class ReservationService {
+    private final ReservationRepository reservationRepository;
+
     public ReservationService(ReservationRepository reservationRepository) {
+        this.reservationRepository = reservationRepository;
     }
 
-    public List<Reservation> getReservationsByUserId(Long id) {
-        return null;
+    public List<Reservation> getReservationsByUserId(Long userId) throws SQLException {
+        return reservationRepository.findByUserId(userId);
     }
 
-    public void create(Reservation reservation) {
+    public boolean create(Reservation reservation) throws SQLException {
+        return reservationRepository.save(reservation) != null;
     }
 
-    public void cancel(Long reservationId) {
+    public boolean cancel(Long reservationId) throws SQLException {
+        try {
+            reservationRepository.delete(reservationId);
+            return true;
+        } catch (SQLException e) {
+            System.err.println("Failed to cancel reservation: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public List<Reservation> getReservationsByRoomId(Long roomId) throws SQLException {
+        return reservationRepository.findByRoomId(roomId);
     }
 }

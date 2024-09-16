@@ -11,16 +11,18 @@ public class Main {
         RoomRepository roomRepository = new RoomRepository();
         SpecialEventRepository specialEventRepository = new SpecialEventRepository();
         ReservationRepository reservationRepository = new ReservationRepository();
+        RoomPricingRepository roomPricingRepository = new RoomPricingRepository();
 
         UserService userService = new UserService(userRepository);
         RoomService roomService = new RoomService(roomRepository);
         SpecialEventService specialEventService = new SpecialEventService(specialEventRepository);
         ModeratorService moderatorService = new ModeratorService(moderatorRepository);
         ReservationService reservationService = new ReservationService(reservationRepository);
+        RoomPricingService roomPricingService = new RoomPricingService(roomPricingRepository, specialEventService);
 
-        ModeratorMenu moderatorMenu = new ModeratorMenu(roomService, specialEventService, moderatorService);
+        ModeratorMenu moderatorMenu = new ModeratorMenu(moderatorService, specialEventService, roomPricingService, roomService, userService);
 
-        UserMenu userMenu = new UserMenu(userService, reservationService, null);
+        UserMenu userMenu = new UserMenu(reservationService,roomPricingService, specialEventService,roomService, userService);
 
         LoginMenu loginMenu = new LoginMenu(userService, moderatorService, moderatorMenu, userMenu);
         loginMenu.show();

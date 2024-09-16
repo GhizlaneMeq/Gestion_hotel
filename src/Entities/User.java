@@ -17,10 +17,6 @@ public class User {
         this.password = password;
     }
 
-    public User(String name, String email, String phone, String password) {
-        this(null, name, email, phone, password);
-    }
-
     public Long getId() {
         return id;
     }
@@ -59,9 +55,5 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public boolean validatePassword(String password) {
-        return this.password.equals(password);
     }
 }

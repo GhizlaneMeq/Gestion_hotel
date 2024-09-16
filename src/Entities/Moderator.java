@@ -17,7 +17,9 @@ public class Moderator extends User {
         this.permission = permission;
     }
 
-    public Moderator(long id, long userId, String permission) {
+    public Moderator(Long id, String permission) {
+        super(id, null, null, null, null);
+        this.permission = permission;
     }
 
     public String getPermission() {
@@ -28,4 +30,15 @@ public class Moderator extends User {
         this.permission = permission;
     }
 
+    @Override
+    public String toString() {
+        return "Moderator{" +
+                "id=" + getId() +
+                ", name='" + getName() + '\'' +
+                ", email='" + getEmail() + '\'' +
+                ", phone='" + getPhone() + '\'' +
+                ", password='" + getPassword() + '\'' +
+                ", permission='" + permission + '\'' +
+                '}';
+    }
 }

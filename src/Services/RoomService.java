@@ -1,39 +1,49 @@
 package Services;
 
-import Entities.Room;
+import Entities.*;
 import Repositories.RoomRepository;
+
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public class RoomService {
-    private final RoomRepository roomRepository;
+    private RoomRepository roomRepository;
 
     public RoomService(RoomRepository roomRepository) {
         this.roomRepository = roomRepository;
     }
 
-    public void createRoom(Room room) throws SQLException {
+    public void create(Room room) throws SQLException {
         roomRepository.save(room);
     }
 
-    public List<Room> getAllRooms() throws SQLException {
+    public Optional<Room> getById(Long id) throws SQLException {
+        return roomRepository.findById(id);
+    }
+
+    public List<Room> getAll() throws SQLException {
         return roomRepository.findAll();
     }
 
-    public void updateRoomAvailability(Long roomId, boolean isAvailable) throws SQLException {
-        roomRepository.updateAvailability(roomId, isAvailable);
+    public void update(Room room) throws SQLException {
+        roomRepository.update(room);
     }
 
-    public Optional<Room> getRoomById(Long roomId) throws SQLException {
-        return Optional.ofNullable(roomRepository.findById(roomId));
+    public void delete(Long id) throws SQLException {
+        roomRepository.delete(id);
     }
 
-    public void update(Room room, Long id) throws SQLException {
-        roomRepository.update(room,id);
+    public boolean isAvailable(Long roomId, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        return roomRepository.isAvailable(roomId, checkInDate, checkOutDate);
     }
 
-    public void delete(Long roomId) throws SQLException {
-        roomRepository.delete(roomId);
+    public List<Room> getAvailableRooms(LocalDate checkInDate, LocalDate checkOutDate) {
+        return null;
+    }
+
+    public List<Room> getRoomsByType(RoomType roomType) throws SQLException {
+        return roomRepository.findByRoomType(roomType);
     }
 }

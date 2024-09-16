@@ -2,32 +2,47 @@ package Services;
 
 import Entities.SpecialEvent;
 import Repositories.SpecialEventRepository;
+
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public class SpecialEventService {
-    private SpecialEventRepository specialEventRepository;
+    private final SpecialEventRepository specialEventRepository;
 
     public SpecialEventService(SpecialEventRepository specialEventRepository) {
         this.specialEventRepository = specialEventRepository;
     }
 
-    public void createEvent(SpecialEvent event) throws SQLException {
-        specialEventRepository.save(event);
+    public void createEvent(SpecialEvent event) {
+        try {
+            specialEventRepository.save(event);
+        } catch (SQLException e) {
+            throw new RuntimeException("Error creating special event", e);
+        }
     }
 
     public List<SpecialEvent> getAllEvents() throws SQLException {
         return specialEventRepository.findAll();
     }
 
-    public Optional<SpecialEvent> getEventById(Long eventId) {
+    public Optional<SpecialEvent> getEventById(Long eventId) throws SQLException {
+        return specialEventRepository.findById(eventId);
+    }
+
+    public void updateEvent(SpecialEvent event) throws SQLException {
+        specialEventRepository.update(event);
+
+    }
+
+    public void deleteEvent(Long eventId) throws SQLException {
+        specialEventRepository.delete(eventId);
+
+    }
+
+    public BigDecimal calculateEventCharge(LocalDate checkInDate, LocalDate checkOutDate) {
         return null;
-    }
-
-    public void update(SpecialEvent event) {
-    }
-
-    public void delete(Long eventId) {
     }
 }

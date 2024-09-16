@@ -10,8 +10,7 @@ public class SpecialEvent {
     private LocalDate endDate;
     private BigDecimal extraCharge;
 
-    public SpecialEvent() {
-    }
+    public SpecialEvent() {}
 
     public SpecialEvent(Long id, String eventName, LocalDate startDate, LocalDate endDate, BigDecimal extraCharge) {
         this.id = id;
@@ -50,6 +49,9 @@ public class SpecialEvent {
     }
 
     public void setEndDate(LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("End date must be after start date");
+        }
         this.endDate = endDate;
     }
 
@@ -58,9 +60,17 @@ public class SpecialEvent {
     }
 
     public void setExtraCharge(BigDecimal extraCharge) {
-        if (extraCharge.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Extra charge must be positive");
-        }
         this.extraCharge = extraCharge;
     }
+    @Override
+    public String toString() {
+        return "SpecialEvent{" +
+                "id=" + id +
+                ", eventName='" + eventName + '\'' +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", extraCharge=" + extraCharge +
+                '}';
+    }
+
 }

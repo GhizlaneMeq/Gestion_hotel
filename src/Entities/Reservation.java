@@ -11,14 +11,11 @@ public class Reservation {
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
     private BigDecimal totalPrice;
-    private String specialRequests;
 
-    public Reservation() {
-    }
+    public Reservation() {}
 
     public Reservation(Long id, User user, Room room, ReservationStatus reservationStatus,
-                       LocalDate checkInDate, LocalDate checkOutDate, BigDecimal totalPrice,
-                       String specialRequests) {
+                       LocalDate checkInDate, LocalDate checkOutDate, BigDecimal totalPrice) {
         this.id = id;
         this.user = user;
         this.room = room;
@@ -26,10 +23,6 @@ public class Reservation {
         this.checkInDate = checkInDate;
         this.checkOutDate = checkOutDate;
         this.totalPrice = totalPrice;
-        this.specialRequests = specialRequests;
-    }
-
-    public Reservation(Long id, Long id1, Long roomId, String confirmed, LocalDate checkInDate, LocalDate checkOutDate, BigDecimal totalPrice, String specialRequests) {
     }
 
     public Long getId() {
@@ -90,14 +83,4 @@ public class Reservation {
     public void setTotalPrice(BigDecimal totalPrice) {
         this.totalPrice = totalPrice;
     }
-
-    public String getSpecialRequests() {
-        return specialRequests;
-    }
-
-    public void setSpecialRequests(String specialRequests) {
-        this.specialRequests = specialRequests;
-    }
-
-
 }

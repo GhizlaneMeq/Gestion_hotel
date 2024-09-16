@@ -1,127 +1,244 @@
 package Menus;
 
-import Entities.Reservation;
-import Entities.User;
-import Services.ReservationService;
-import Services.UserService;
+import Entities.*;
+import Services.*;
 
 import java.math.BigDecimal;
-import java.sql.*;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.*;
-
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
 
 public class UserMenu {
-    private UserService userService;
-    private ReservationService reservationService;
-    private User currentUser;
+    private final ReservationService reservationService;
+    private final RoomPricingService roomPricingService;
+    private final SpecialEventService specialEventService;
+    private final RoomService roomService;
+    private final UserService userService;
+    private User loggedInUser;
+    private final Scanner scanner;
 
-    public UserMenu(UserService userService, ReservationService reservationService, User currentUser) {
-        this.userService = userService;
+    public UserMenu(ReservationService reservationService, RoomPricingService roomPricingService, SpecialEventService specialEventService, RoomService roomService, UserService userService) {
         this.reservationService = reservationService;
-        this.currentUser = currentUser;
+        this.roomPricingService = roomPricingService;
+        this.specialEventService = specialEventService;
+        this.roomService = roomService;
+        this.userService = userService;
+        this.scanner = new Scanner(System.in);
+    }
+    public void setLoggedInUser(User user) {
+        this.loggedInUser = user;
     }
 
-    public void setCurrentUser(User currentUser) {
-        this.currentUser = currentUser;
-    }
-    public void show() {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            System.out.println("User Menu");
-            System.out.println("1. View Profile");
-            System.out.println("2. Manage Reservations");
-            System.out.println("3. Logout");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-            switch (choice) {
-                case 1:
-                    viewProfile();
-                    break;
-                case 2:
-                    manageReservations(scanner);
-                    break;
-                case 3:
-                    return;
-                default:
-                    System.out.println("Invalid choice. Please try again.");
-            }
+    public void showMenu(Long userId) {
+        if (loggedInUser == null) {
+            System.out.println("No user is logged in.");
+            return;
         }
-    }
 
-    private void viewProfile() {
-        System.out.println("Profile Information:");
-        System.out.println("Name: " + currentUser.getName());
-        System.out.println("Email: " + currentUser.getEmail());
-        System.out.println("Phone: " + currentUser.getPhone());
-        // Not displaying the password for security reasons
-    }
-
-    private void manageReservations(Scanner scanner) {
         while (true) {
-            System.out.println("Manage Reservations Menu");
-            System.out.println("1. View Reservations");
-            System.out.println("2. Make a Reservation");
-            System.out.println("3. Cancel a Reservation");
-            System.out.println("4. Back to Main Menu");
-            int choice = scanner.nextInt();
-            scanner.nextLine();
+            System.out.println("User Menu:");
+            System.out.println("1. View Profile");
+            System.out.println("2. View Reservations");
+            System.out.println("3. Make a Reservation");
+            System.out.println("4. Exit");
+
+            int choice = getIntInput();
             switch (choice) {
                 case 1:
-                    viewReservations();
+                    viewProfile(userId);
                     break;
                 case 2:
-                    makeReservation(scanner);
+                    viewReservations(userId);
                     break;
                 case 3:
-                    cancelReservation(scanner);
+                    makeReservation(userId);
                     break;
                 case 4:
-                    return;
+                    return; // Exit menu
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
         }
     }
 
-    private void viewReservations() {
-        List<Reservation> reservations = reservationService.getReservationsByUserId(currentUser.getId());
-        if (reservations.isEmpty()) {
-            System.out.println("You have no reservations.");
-        } else {
-            for (Reservation reservation : reservations) {
-                System.out.println(reservation);
+    private void viewProfile(Long userId) {
+        try {
+            Optional<User> userOptional = userService.findById(userId);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                System.out.println("=== Profile Information ===");
+                System.out.println("Name: " + user.getName());
+                System.out.println("Email: " + user.getEmail());
+                System.out.println("Phone: " + user.getPhone());
+            } else {
+                System.out.println("User not found.");
             }
+        } catch (SQLException e) {
+            System.out.println("Error fetching user profile: " + e.getMessage());
         }
     }
 
-    private void makeReservation(Scanner scanner) {
-        System.out.print("Enter room ID: ");
-        Long roomId = Long.parseLong(scanner.nextLine());
-        System.out.print("Enter check-in date (YYYY-MM-DD): ");
-        LocalDate checkInDate = LocalDate.parse(scanner.nextLine());
-        System.out.print("Enter check-out date (YYYY-MM-DD): ");
-        LocalDate checkOutDate = LocalDate.parse(scanner.nextLine());
-        System.out.print("Enter special requests (or leave blank): ");
-        String specialRequests = scanner.nextLine();
-
-        BigDecimal totalPrice = calculateTotalPrice(roomId, checkInDate, checkOutDate);
-
-        Reservation reservation = new Reservation(null, currentUser.getId(), roomId,
-                "Confirmed", checkInDate, checkOutDate, totalPrice, specialRequests);
-
-        reservationService.create(reservation);
-        System.out.println("Reservation made successfully!");
+    private void viewReservations(Long userId) {
+        try {
+            List<Reservation> reservations = reservationService.getReservationsByUserId(userId);
+            if (reservations.isEmpty()) {
+                System.out.println("You have no reservations.");
+            } else {
+                for (Reservation reservation : reservations) {
+                    System.out.println("Reservation ID: " + reservation.getId());
+                    System.out.println("Room Number: " + reservation.getRoom().getRoomNumber());
+                    System.out.println("Check-In Date: " + reservation.getCheckInDate());
+                    System.out.println("Check-Out Date: " + reservation.getCheckOutDate());
+                    System.out.println("Status: " + reservation.getReservationStatus());
+                    BigDecimal totalPrice = calculateTotalPrice(reservation.getRoom(), reservation.getCheckInDate(), reservation.getCheckOutDate());
+                    System.out.println("-----------------------------");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching reservations: " + e.getMessage());
+        }
     }
 
-    private BigDecimal calculateTotalPrice(Long roomId, LocalDate checkInDate, LocalDate checkOutDate) {
-        return BigDecimal.ZERO;
+    private void makeReservation(Long userId) {
+        try {
+            // Read input
+            System.out.println("Enter check-in date (YYYY-MM-DD):");
+            LocalDate checkInDate = getValidDate();
+            if (checkInDate == null) return;
+
+            System.out.println("Enter check-out date (YYYY-MM-DD):");
+            LocalDate checkOutDate = getValidDate();
+            if (checkOutDate == null || !validateDates(checkInDate, checkOutDate)) return;
+
+            System.out.println("Enter room type (SINGLE, DOUBLE, SUITE):");
+            String roomTypeInput = scanner.nextLine().toUpperCase();
+            RoomType roomType;
+            try {
+                roomType = RoomType.valueOf(roomTypeInput);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid room type. Please enter SINGLE, DOUBLE, or SUITE.");
+                return;
+            }
+
+            // Find available room
+            Optional<Room> availableRoom = findAvailableRoom(roomType, checkInDate, checkOutDate);
+            if (availableRoom.isPresent()) {
+                Room room = availableRoom.get();
+                BigDecimal totalPrice = calculateTotalPrice(room, checkInDate, checkOutDate);
+                System.out.println("Available Room Found!");
+                System.out.println("Room Number: " + room.getRoomNumber());
+                System.out.println("Total Price: " + totalPrice);
+                System.out.println("Do you want to proceed with the reservation? (yes/no)");
+
+                if (scanner.nextLine().equalsIgnoreCase("yes")) {
+                    // Fetch the User object using userId
+                    Optional<User> userOptional = userService.findById(userId);
+                    if (userOptional.isPresent()) {
+                        User user = userOptional.get();
+                        // Create Reservation
+                        Reservation reservation = new Reservation(null, user, room, ReservationStatus.Confirmed, checkInDate, checkOutDate, totalPrice);
+                        boolean success = reservationService.create(reservation);
+                        if (success) {
+                            System.out.println("Reservation created successfully.");
+                        } else {
+                            System.out.println("Failed to create reservation. Please try again.");
+                        }
+                    } else {
+                        System.out.println("User not found.");
+                    }
+                } else {
+                    System.out.println("Reservation canceled.");
+                }
+            } else {
+                System.out.println("No available rooms of the selected type for the given dates.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error making reservation: " + e.getMessage());
+        }
     }
 
-    private void cancelReservation(Scanner scanner) {
-        System.out.print("Enter reservation ID to cancel: ");
-        Long reservationId = Long.parseLong(scanner.nextLine());
-        reservationService.cancel(reservationId);
-        System.out.println("Reservation canceled successfully.");
+    private Optional<Room> findAvailableRoom(RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        List<Room> rooms = roomService.getRoomsByType(roomType);
+
+        for (Room room : rooms) {
+            List<Reservation> reservations = reservationService.getReservationsByRoomId(room.getId());
+            boolean isAvailable = true;
+
+            for (Reservation reservation : reservations) {
+                if (!(checkOutDate.isBefore(reservation.getCheckInDate()) || checkInDate.isAfter(reservation.getCheckOutDate()))) {
+                    isAvailable = false;
+                    break;
+                }
+            }
+
+            if (isAvailable) {
+                return Optional.of(room);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private BigDecimal calculateTotalPrice(Room room, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        BigDecimal basePrice = getBasePrice(room, checkInDate, checkOutDate);
+        BigDecimal specialEventCharge = getSpecialEventCharge(checkInDate, checkOutDate);
+        return basePrice.add(specialEventCharge);
+    }
+
+    private BigDecimal getBasePrice(Room room, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        List<RoomPricing> pricings = roomPricingService.findByRoomType(room.getRoomType());
+        BigDecimal totalBasePrice = BigDecimal.ZERO;
+
+        for (RoomPricing pricing : pricings) {
+
+
+        }
+        return totalBasePrice;
+    }
+
+    private BigDecimal getSpecialEventCharge(LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
+        List<SpecialEvent> events = specialEventService.getAllEvents();
+        BigDecimal totalCharge = BigDecimal.ZERO;
+
+        for (SpecialEvent event : events) {
+            if ((checkInDate.isBefore(event.getEndDate()) && checkOutDate.isAfter(event.getStartDate()))) {
+                LocalDate start = checkInDate.isBefore(event.getStartDate()) ? event.getStartDate() : checkInDate;
+                LocalDate end = checkOutDate.isAfter(event.getEndDate()) ? event.getEndDate() : checkOutDate;
+                long days = java.time.Duration.between(start.atStartOfDay(), end.atStartOfDay()).toDays();
+                totalCharge = totalCharge.add(event.getExtraCharge().multiply(BigDecimal.valueOf(days)));
+            }
+        }
+        return totalCharge;
+    }
+
+    private LocalDate getValidDate() {
+        try {
+            return LocalDate.parse(scanner.nextLine());
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format. Please use YYYY-MM-DD.");
+            return null;
+        }
+    }
+
+    private boolean validateDates(LocalDate checkInDate, LocalDate checkOutDate) {
+        if (checkOutDate.isBefore(checkInDate)) {
+            System.out.println("Check-out date cannot be before check-in date.");
+            return false;
+        }
+        return true;
+    }
+
+    private int getIntInput() {
+        try {
+            return scanner.nextInt();
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid input. Please enter a valid number.");
+            return -1;
+        } finally {
+            scanner.nextLine(); // Consume newline
+        }
     }
 }
