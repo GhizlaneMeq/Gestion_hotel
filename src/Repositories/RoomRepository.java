@@ -57,7 +57,7 @@ public class RoomRepository implements BaseRepository<Room> {
         String sql = "INSERT INTO rooms (room_number, room_type) VALUES (?, ?::room_type) RETURNING id";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, room.getRoomNumber());
-            stmt.setString(2, room.getRoomType().name());
+            stmt.setString(2, room.getRoomType().name()); // Store the enum as a string
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 room.setId(rs.getLong("id"));
@@ -69,10 +69,10 @@ public class RoomRepository implements BaseRepository<Room> {
     @Override
     public void update(Room room) {
         try {
-            String sql = "UPDATE rooms SET room_number = ?, room_type = ? WHERE id = ?";
+            String sql = "UPDATE rooms SET room_number = ?, room_type = ?::room_type WHERE id = ?";
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, room.getRoomNumber());
-            statement.setString(2, room.getRoomType().name());
+            statement.setString(2, room.getRoomType().name()); // Store the enum as a string
             statement.setLong(3, room.getId());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -91,6 +91,7 @@ public class RoomRepository implements BaseRepository<Room> {
             e.printStackTrace();
         }
     }
+
     public boolean isAvailable(Long roomId, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
         String query = "SELECT COUNT(*) FROM reservations WHERE room_id = ? " +
                 "AND (check_in_date < ? AND check_out_date > ?)";
@@ -114,51 +115,19 @@ public class RoomRepository implements BaseRepository<Room> {
                 RoomType.valueOf(rs.getString("room_type"))
         );
     }
-    public BigDecimal calculateRoomPrice(Long roomId, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
-        Room room = findById(roomId).orElseThrow(() -> new IllegalArgumentException("Room not found"));
-
-        BigDecimal basePrice = getBasePrice(room.getRoomType(), checkInDate, checkOutDate);
-        BigDecimal extraCharge = getEventExtraCharge(checkInDate, checkOutDate);
-
-        return basePrice.add(extraCharge);
-    }
-
-    private BigDecimal getBasePrice(RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
-        String sql = "SELECT base_price FROM room_pricing WHERE room_type = ? AND start_date <= ? AND end_date >= ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, roomType.name());
-            stmt.setDate(2, Date.valueOf(checkInDate));
-            stmt.setDate(3, Date.valueOf(checkOutDate));
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getBigDecimal("base_price");
-            }
-        }
-        return BigDecimal.ZERO;
-    }
-    private BigDecimal getEventExtraCharge(LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
-        String sql = "SELECT SUM(extra_charge) AS total_extra FROM special_events WHERE start_date <= ? AND end_date >= ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setDate(1, Date.valueOf(checkInDate));
-            stmt.setDate(2, Date.valueOf(checkOutDate));
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getBigDecimal("total_extra");
-            }
-        }
-        return BigDecimal.ZERO;
-    }
-
     public List<Room> findByRoomType(RoomType roomType) throws SQLException {
         List<Room> rooms = new ArrayList<>();
-        String sql = "SELECT * FROM rooms WHERE room_type = ?";
+        String sql = "SELECT * FROM rooms WHERE room_type = ?::room_type";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, roomType.name());
+            stmt.setString(1, roomType.name().toUpperCase());
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 rooms.add(mapRowToRoom(rs));
             }
         }
         return rooms;
+
     }
+
+
 }

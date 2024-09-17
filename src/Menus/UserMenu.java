@@ -57,7 +57,7 @@ public class UserMenu {
                     makeReservation(userId);
                     break;
                 case 4:
-                    return; // Exit menu
+                    return;
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
@@ -104,7 +104,6 @@ public class UserMenu {
 
     private void makeReservation(Long userId) {
         try {
-            // Read input
             System.out.println("Enter check-in date (YYYY-MM-DD):");
             LocalDate checkInDate = getValidDate();
             if (checkInDate == null) return;
@@ -122,10 +121,9 @@ public class UserMenu {
                 System.out.println("Invalid room type. Please enter SINGLE, DOUBLE, or SUITE.");
                 return;
             }
-
-            // Find available room
             Optional<Room> availableRoom = findAvailableRoom(roomType, checkInDate, checkOutDate);
-            if (availableRoom.isPresent()) {
+
+           if (availableRoom.isPresent()) {
                 Room room = availableRoom.get();
                 BigDecimal totalPrice = calculateTotalPrice(room, checkInDate, checkOutDate);
                 System.out.println("Available Room Found!");
@@ -134,12 +132,12 @@ public class UserMenu {
                 System.out.println("Do you want to proceed with the reservation? (yes/no)");
 
                 if (scanner.nextLine().equalsIgnoreCase("yes")) {
-                    // Fetch the User object using userId
                     Optional<User> userOptional = userService.findById(userId);
                     if (userOptional.isPresent()) {
                         User user = userOptional.get();
-                        // Create Reservation
-                        Reservation reservation = new Reservation(null, user, room, ReservationStatus.Confirmed, checkInDate, checkOutDate, totalPrice);
+                        ReservationStatus reservationStatus;
+                        reservationStatus = ReservationStatus.valueOf("Confirmed");
+                        Reservation reservation = new Reservation(null, user, room,reservationStatus, checkInDate, checkOutDate, totalPrice);
                         boolean success = reservationService.create(reservation);
                         if (success) {
                             System.out.println("Reservation created successfully.");
@@ -155,6 +153,8 @@ public class UserMenu {
             } else {
                 System.out.println("No available rooms of the selected type for the given dates.");
             }
+
+
         } catch (SQLException e) {
             System.out.println("Error making reservation: " + e.getMessage());
         }
@@ -162,18 +162,16 @@ public class UserMenu {
 
     private Optional<Room> findAvailableRoom(RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
         List<Room> rooms = roomService.getRoomsByType(roomType);
-
         for (Room room : rooms) {
             List<Reservation> reservations = reservationService.getReservationsByRoomId(room.getId());
             boolean isAvailable = true;
-
+            System.out.println(room);
             for (Reservation reservation : reservations) {
                 if (!(checkOutDate.isBefore(reservation.getCheckInDate()) || checkInDate.isAfter(reservation.getCheckOutDate()))) {
                     isAvailable = false;
                     break;
                 }
             }
-
             if (isAvailable) {
                 return Optional.of(room);
             }
@@ -185,19 +183,27 @@ public class UserMenu {
     private BigDecimal calculateTotalPrice(Room room, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
         BigDecimal basePrice = getBasePrice(room, checkInDate, checkOutDate);
         BigDecimal specialEventCharge = getSpecialEventCharge(checkInDate, checkOutDate);
-        return basePrice.add(specialEventCharge);
+       return basePrice.add(specialEventCharge);
+
     }
 
     private BigDecimal getBasePrice(Room room, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
         List<RoomPricing> pricings = roomPricingService.findByRoomType(room.getRoomType());
         BigDecimal totalBasePrice = BigDecimal.ZERO;
-
-        for (RoomPricing pricing : pricings) {
-
-
+        long numberOfNights = java.time.Duration.between(checkInDate.atStartOfDay(), checkOutDate.atStartOfDay()).toDays();
+        if (numberOfNights < 0) {
+            throw new IllegalArgumentException("Check-out date cannot be before check-in date.");
         }
+        for (RoomPricing pricing : pricings) {
+            if (pricing.getRoomType() == room.getRoomType()) {
+                totalBasePrice = totalBasePrice.add(pricing.getBasePrice().multiply(BigDecimal.valueOf(numberOfNights)));
+            }
+        }
+        System.out.println("price"+totalBasePrice);
         return totalBasePrice;
     }
+
+
 
     private BigDecimal getSpecialEventCharge(LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
         List<SpecialEvent> events = specialEventService.getAllEvents();
@@ -238,7 +244,7 @@ public class UserMenu {
             System.out.println("Invalid input. Please enter a valid number.");
             return -1;
         } finally {
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine();
         }
     }
 }

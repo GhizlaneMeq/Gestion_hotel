@@ -37,28 +37,6 @@ public class RoomPricingService {
         return roomPricing.orElse(null);
     }
 
-   /* public BigDecimal calculatePrice(RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
-        List<RoomPricing> pricings = roomPricingRepository.findByRoomType(roomType);
-
-        BigDecimal totalPrice = BigDecimal.ZERO;
-        LocalDate currentDate = checkInDate;
-
-        while (currentDate.isBefore(checkOutDate)) {
-            final LocalDate finalCurrentDate = currentDate;
-            RoomPricing pricing = pricings.stream()
-                    .filter(p -> !finalCurrentDate.isBefore(p.getStartDate()) && !finalCurrentDate.isAfter(p.getEndDate()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("No pricing found for date: " + finalCurrentDate));
-
-            totalPrice = totalPrice.add(pricing.getBasePrice());
-
-            currentDate = currentDate.plusDays(1);
-        }
-
-        BigDecimal eventCharge = specialEventService.calculateEventCharge(checkInDate, checkOutDate);
-        return totalPrice.add(eventCharge);
-    }*/
-
     public List<RoomPricing> findByRoomType(RoomType roomType) throws SQLException {
         return roomPricingRepository.findByRoomType(roomType);
     }

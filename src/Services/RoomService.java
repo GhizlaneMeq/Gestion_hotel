@@ -35,14 +35,6 @@ public class RoomService {
         roomRepository.delete(id);
     }
 
-    public boolean isAvailable(Long roomId, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
-        return roomRepository.isAvailable(roomId, checkInDate, checkOutDate);
-    }
-
-    public List<Room> getAvailableRooms(LocalDate checkInDate, LocalDate checkOutDate) {
-        return null;
-    }
-
     public List<Room> getRoomsByType(RoomType roomType) throws SQLException {
         return roomRepository.findByRoomType(roomType);
     }

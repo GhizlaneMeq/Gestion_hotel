@@ -81,7 +81,7 @@ public class RoomPricingRepository implements BaseRepository<RoomPricing> {
     }
 
     public List<RoomPricing> findByRoomType(RoomType roomType) throws SQLException {
-        String sql = "SELECT * FROM room_pricing WHERE room_type = ?";
+        String sql = "SELECT * FROM room_pricing WHERE room_type = ?::room_type";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, roomType.name());
             ResultSet rs = stmt.executeQuery();

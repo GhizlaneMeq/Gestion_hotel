@@ -80,7 +80,7 @@ public class Reservation {
         return totalPrice;
     }
 
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
+    public void setTotalPrice(int totalPrice) {
+        this.totalPrice = BigDecimal.valueOf(totalPrice);
     }
 }

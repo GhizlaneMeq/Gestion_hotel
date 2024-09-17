@@ -42,7 +42,4 @@ public class SpecialEventService {
 
     }
 
-    public BigDecimal calculateEventCharge(LocalDate checkInDate, LocalDate checkOutDate) {
-        return null;
-    }
 }

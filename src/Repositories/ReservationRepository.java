@@ -16,7 +16,8 @@ public class ReservationRepository implements BaseRepository<Reservation> {
 
     @Override
     public Reservation save(Reservation reservation) throws SQLException {
-        String sql = "INSERT INTO reservations (user_id, room_id, reservation_status, check_in_date, check_out_date, total_price) VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+        String sql = "INSERT INTO reservations (user_id, room_id, reservation_status, check_in_date, check_out_date, total_price) " +
+                "VALUES (?, ?, CAST(? AS reservation_status), ?, ?, ?) RETURNING id";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, reservation.getUser().getId());
             stmt.setLong(2, reservation.getRoom().getId());
@@ -24,6 +25,7 @@ public class ReservationRepository implements BaseRepository<Reservation> {
             stmt.setDate(4, Date.valueOf(reservation.getCheckInDate()));
             stmt.setDate(5, Date.valueOf(reservation.getCheckOutDate()));
             stmt.setBigDecimal(6, reservation.getTotalPrice());
+
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 reservation.setId(rs.getLong("id"));
@@ -98,7 +100,6 @@ public class ReservationRepository implements BaseRepository<Reservation> {
     private Reservation mapRowToReservation(ResultSet rs) throws SQLException {
         return new Reservation(
                 rs.getLong("id"),
-                // You need to replace these with proper User and Room fetching logic
                 new User(rs.getLong("user_id"), null, null, null, null),
                 new Room(rs.getLong("room_id"), null, null),
                 ReservationStatus.valueOf(rs.getString("reservation_status")),
