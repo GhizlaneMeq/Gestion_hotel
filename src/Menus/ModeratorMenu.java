@@ -5,6 +5,8 @@ import Services.*;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -14,15 +16,16 @@ public class ModeratorMenu {
     private final SpecialEventService specialEventService;
     private final RoomPricingService roomPricingService;
     private final RoomService roomService;
-
+    private final StatistiqueService statistiqueService;
     private final UserService userService;
     public ModeratorMenu(ModeratorService moderatorService, SpecialEventService specialEventService,
-                         RoomPricingService roomPricingService, RoomService roomService, UserService userService) {
+                         RoomPricingService roomPricingService, RoomService roomService, UserService userService,StatistiqueService statistiqueService) {
         this.moderatorService = moderatorService;
         this.specialEventService = specialEventService;
         this.roomPricingService = roomPricingService;
         this.roomService = roomService;
         this.userService = userService;
+        this.statistiqueService = statistiqueService;
     }
 
     public void displayMenu() throws SQLException {
@@ -35,7 +38,8 @@ public class ModeratorMenu {
             System.out.println("2. Manage Events");
             System.out.println("3. Manage Room Pricing");
             System.out.println("4. Manage Rooms");
-            System.out.println("5. Exit");
+            System.out.println("5. View Statistics");
+            System.out.println("6. Exit");
             System.out.print("Enter your choice: ");
             choice = scanner.nextInt();
             scanner.nextLine();
@@ -45,10 +49,11 @@ public class ModeratorMenu {
                 case 2 -> manageEvents(scanner);
                 case 3 -> manageRoomPricing(scanner);
                 case 4 -> manageRooms(scanner);
-                case 5 -> System.out.println("Exiting Moderator Menu...");
+                case 5 -> viewStatistics(scanner);
+                case 6 -> System.out.println("Exiting Moderator Menu...");
                 default -> System.out.println("Invalid choice. Please try again.");
             }
-        } while (choice != 5);
+        } while (choice != 6);
     }
 
     private void manageModerators(Scanner scanner) throws SQLException {
@@ -286,4 +291,60 @@ public class ModeratorMenu {
         roomService.delete(id);
         System.out.println("Room removed successfully.");
     }
+
+    private void viewStatistics(Scanner scanner) throws SQLException {
+        System.out.println("\n--- View Statistics ---");
+
+        System.out.print("Enter Start Date (YYYY-MM-DD): ");
+        LocalDate startDate = LocalDate.parse(scanner.nextLine());
+        System.out.print("Enter End Date (YYYY-MM-DD): ");
+        LocalDate endDate = LocalDate.parse(scanner.nextLine());
+
+        Double occupancyRate = statistiqueService.calculateOccupancyRate(startDate, endDate);
+        if (occupancyRate == null) {
+            System.out.println("Occupancy Rate: No data available.");
+        } else {
+            System.out.printf("Occupancy Rate: %.2f%%\n", occupancyRate);
+        }
+
+        BigDecimal totalRevenue = statistiqueService.calculateTotalRevenue(startDate, endDate);
+        if (totalRevenue == null) {
+            System.out.println("Total Revenue: No data available.");
+        } else {
+            System.out.println("Total Revenue: $" + totalRevenue);
+        }
+
+        Long canceledReservations = statistiqueService.countCanceledReservations(startDate, endDate);
+        if (canceledReservations == null) {
+            System.out.println("Canceled Reservations: No data available.");
+        } else {
+            System.out.println("Canceled Reservations: " + canceledReservations);
+        }
+
+        List<Room> mostReservedRooms = statistiqueService.getMostReservedRooms(2);
+        if (mostReservedRooms == null || mostReservedRooms.isEmpty()) {
+            System.out.println("\nTop 3 Most Reserved Rooms: No data available.");
+        } else {
+            System.out.println("\nTop 3 Most Reserved Rooms:");
+            mostReservedRooms.forEach(System.out::println);
+        }
+
+        Map<RoomType, BigDecimal> revenuePerRoomType = statistiqueService.calculateRevenuePerRoomType(startDate, endDate);
+        if (revenuePerRoomType == null || revenuePerRoomType.isEmpty()) {
+            System.out.println("\nRevenue Per Room Type: No data available.");
+        } else {
+            System.out.println("\nRevenue Per Room Type:");
+            revenuePerRoomType.forEach((roomType, revenue) -> System.out.println(roomType + ": $" + revenue));
+        }
+
+        Map<RoomType, Long> reservedRoomsPerType = statistiqueService.countCurrentlyReservedRoomsPerType();
+        if (reservedRoomsPerType == null || reservedRoomsPerType.isEmpty()) {
+            System.out.println("\nCurrently Reserved Rooms Per Room Type: No data available.");
+        } else {
+            System.out.println("\nCurrently Reserved Rooms Per Room Type:");
+            ((Map<?, ?>) reservedRoomsPerType).forEach((roomType, count) -> System.out.println(roomType + ": " + count));
+        }
+    }
+
+
 }

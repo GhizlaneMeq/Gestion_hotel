@@ -4,7 +4,6 @@ import Entities.Room;
 import Entities.RoomType;
 import Utils.DatabaseConnection;
 
-import java.math.BigDecimal;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -67,7 +66,7 @@ public class RoomRepository implements BaseRepository<Room> {
     }
 
     @Override
-    public void update(Room room) {
+    public boolean update(Room room) {
         try {
             String sql = "UPDATE rooms SET room_number = ?, room_type = ?::room_type WHERE id = ?";
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -78,6 +77,7 @@ public class RoomRepository implements BaseRepository<Room> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     @Override

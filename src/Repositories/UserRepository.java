@@ -100,7 +100,7 @@ public class UserRepository implements BaseRepository<User> {
     }
 
     @Override
-    public void update(User user) {
+    public boolean update(User user) {
         try {
             String sql = "UPDATE users SET name = ?, email = ?, phone = ?, password = ? WHERE id = ?";
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -113,6 +113,7 @@ public class UserRepository implements BaseRepository<User> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     @Override

@@ -53,7 +53,7 @@ public class RoomPricingRepository implements BaseRepository<RoomPricing> {
     }
 
     @Override
-    public void update(RoomPricing pricing) throws SQLException {
+    public boolean update(RoomPricing pricing) throws SQLException {
         String sql = "UPDATE room_pricing SET room_type = ?,base_price = ? WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, pricing.getRoomType().name());
@@ -61,6 +61,7 @@ public class RoomPricingRepository implements BaseRepository<RoomPricing> {
             stmt.setLong(5, pricing.getId());
             stmt.executeUpdate();
         }
+        return false;
     }
 
     @Override

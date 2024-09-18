@@ -19,8 +19,8 @@ public class Main {
         ModeratorService moderatorService = new ModeratorService(moderatorRepository);
         ReservationService reservationService = new ReservationService(reservationRepository);
         RoomPricingService roomPricingService = new RoomPricingService(roomPricingRepository, specialEventService);
-
-        ModeratorMenu moderatorMenu = new ModeratorMenu(moderatorService, specialEventService, roomPricingService, roomService, userService);
+        StatistiqueService statistiqueService = new StatistiqueService(reservationRepository,roomRepository);
+        ModeratorMenu moderatorMenu = new ModeratorMenu(moderatorService, specialEventService, roomPricingService, roomService, userService,statistiqueService);
 
         UserMenu userMenu = new UserMenu(reservationService,roomPricingService, specialEventService,roomService, userService);
 

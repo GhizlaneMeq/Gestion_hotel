@@ -43,7 +43,8 @@ public class UserMenu {
             System.out.println("1. View Profile");
             System.out.println("2. View Reservations");
             System.out.println("3. Make a Reservation");
-            System.out.println("4. Exit");
+            System.out.println("4. Modify a Reservation");
+            System.out.println("5. Exit");
 
             int choice = getIntInput();
             switch (choice) {
@@ -57,6 +58,9 @@ public class UserMenu {
                     makeReservation(userId);
                     break;
                 case 4:
+                    modifyReservation(userId);
+                    break;
+                case 5:
                     return;
                 default:
                     System.out.println("Invalid choice. Please try again.");
@@ -159,6 +163,12 @@ public class UserMenu {
             System.out.println("Error making reservation: " + e.getMessage());
         }
     }
+    private void modifyReservation(Long userId) {
+        System.out.println("Enter reservation ID to modify:");
+    }
+
+
+
 
     private Optional<Room> findAvailableRoom(RoomType roomType, LocalDate checkInDate, LocalDate checkOutDate) throws SQLException {
         List<Room> rooms = roomService.getRoomsByType(roomType);

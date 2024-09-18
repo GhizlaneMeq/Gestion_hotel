@@ -61,19 +61,18 @@ public class ReservationRepository implements BaseRepository<Reservation> {
     }
 
     @Override
-    public void update(Reservation reservation) throws SQLException {
-        String sql = "UPDATE reservations SET user_id = ?, room_id = ?, reservation_status = ?, check_in_date = ?, check_out_date = ?, total_price = ? WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, reservation.getUser().getId());
-            stmt.setLong(2, reservation.getRoom().getId());
-            stmt.setString(3, reservation.getReservationStatus().name());
-            stmt.setDate(4, Date.valueOf(reservation.getCheckInDate()));
-            stmt.setDate(5, Date.valueOf(reservation.getCheckOutDate()));
-            stmt.setBigDecimal(6, reservation.getTotalPrice());
-            stmt.setLong(7, reservation.getId());
-            stmt.executeUpdate();
+    public boolean update(Reservation reservation) throws SQLException {
+        String sql = "UPDATE reservations SET check_in_date = ?, check_out_date = ?, room_id = ?, total_price = ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setDate(1, Date.valueOf(reservation.getCheckInDate()));
+            statement.setDate(2, Date.valueOf(reservation.getCheckOutDate()));
+            statement.setLong(3, reservation.getRoom().getId());
+            statement.setBigDecimal(4, reservation.getTotalPrice());
+            statement.setLong(5, reservation.getId());
+            return statement.executeUpdate() > 0;
         }
     }
+
 
     @Override
     public void delete(Long id) throws SQLException {

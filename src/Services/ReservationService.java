@@ -1,9 +1,13 @@
 package Services;
 
 import Entities.Reservation;
+import Entities.Room;
+import Entities.RoomType;
 import Repositories.ReservationRepository;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,4 +39,8 @@ public class ReservationService {
     public List<Reservation> getReservationsByRoomId(Long roomId) throws SQLException {
         return reservationRepository.findByRoomId(roomId);
     }
+    public boolean update(Long reservationId, LocalDate newCheckInDate, LocalDate newCheckOutDate, RoomType newRoomType) throws SQLException {
+        return false;
+    }
+
 }

@@ -66,7 +66,7 @@ public class ModeratorRepository implements BaseRepository<Moderator> {
     }
 
     @Override
-    public void update(Moderator moderator) {
+    public boolean update(Moderator moderator) {
         try {
             String sql = "UPDATE moderators SET permission = ? WHERE id = ?";
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -76,6 +76,7 @@ public class ModeratorRepository implements BaseRepository<Moderator> {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 
     @Override
